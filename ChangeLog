@@ -1,3 +1,7 @@
+2003-03-03  Vivek Khera  <khera@kcilink.com>
+
+	* Sandwich.pm: added LICENSE section omitted before.
+
 2000-03-16  Vivek Khera  <khera@kciLink.com>
 
 	* Sandwich.pm added new function insert_parts() to let mod_perl

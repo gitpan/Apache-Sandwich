@@ -13,7 +13,7 @@ $Debug ||= 0;
 
 BEGIN {
   #must be one line for MakeMaker to work!
-  $VERSION = do { my @r=(q$Revision: 2.4 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+  $VERSION = do { my @r=(q$Revision: 2.5 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
 }
 
 sub handler {
@@ -222,5 +222,10 @@ into the Apache ErrorLog.
 =head1 AUTHOR
 
 Doug MacEachern.  Modifications and cleanup by Vivek Khera.
+
+=head1 LICENSE
+
+This program is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
 
 =cut

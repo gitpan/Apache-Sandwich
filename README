@@ -49,25 +49,25 @@ DESCRIPTION
 
      # filter *.brc files through Sandwich maker, but define
      # HEADER/FOOTER per section below
-     
+ 
      <FilesMatch "\.brc$">
       SetHandler  perl-script
       PerlHandler Apache::Sandwich
      </FilesMatch>
-     
+ 
      <FilesMatch "\.sbrc$">
       SetHandler  perl-script
       PerlHandler Apache::Sandwich
       PerlSetVar SandwichHandler server-parsed
      </FilesMatch>
-     
+ 
      # now specify the header and footer for each major section
      #
      <Location /misc>
        PerlSetVar HEADER "/misc/HEADER.shtml ADS.shtml"
        PerlSetVar FOOTER "/misc/FOOTER.html"
      </Location>
-     
+ 
      <Location /getting_started>
        PerlSetVar HEADER "/getting_started/HEADER.shtml ADS.shtml"
        PerlSetVar FOOTER "/misc/FOOTER.html"
@@ -81,7 +81,6 @@ DESCRIPTION
     process.
 
   Sandwiching mod_perl Programs
-
     The helper function insert_parts() can be used to make your CGI programs
     look like the rest of your pages. A simple script would be:
 
@@ -103,10 +102,10 @@ DESCRIPTION
      Apache::Sandwich::insert_parts('FOOTER');
 
 KNOWN BUGS
-    Headers printed by mod_perl scripts used as a HEADER, FOOTER or in-the-
-    middle uri need to use CGI.pm version 2.37 or higher or headers will
-    show up in the final document (browser window). Suggested work-around
-    (if you don't want to upgrade CGI.pm):
+    Headers printed by mod_perl scripts used as a HEADER, FOOTER or
+    in-the-middle uri need to use CGI.pm version 2.37 or higher or headers
+    will show up in the final document (browser window). Suggested
+    work-around (if you don't want to upgrade CGI.pm):
 
      if($ENV{MOD_PERL} and Apache->request->is_main) {
         #send script headers
@@ -120,4 +119,8 @@ KNOWN BUGS
 
 AUTHOR
     Doug MacEachern. Modifications and cleanup by Vivek Khera.
+
+LICENSE
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
 
