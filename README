@@ -1,0 +1,42 @@
+NAME
+    Apache::Sandwich - Layered document (sandwich) maker
+
+SYNOPSIS
+     SetHandler  perl-script
+     PerlHandler Apache::Sandwich
+
+DESCRIPTION
+ 
+The Apache::Sandwich module allows you to add a per-directory
+custom "header" and/or "footer" content to a given uri.
+    Here's a configuration example:
+
+     #in httpd.conf or .htaccess
+
+     <Location /foo>
+      #any request for /foo and it's document tree
+      #are run through our Apache::Sandwich::handler
+      SetHandler  perl-script
+      PerlHandler Apache::Sandwich
+
+      #we send this file first
+      PerlSetVar HEADER /my_header.html
+
+      #requested uri (e.g. /foo/index.html) is sent in the middle
+
+      #we send output of this mod_perl script last  
+      PerlSetVar FOOTER /perl/footer.pl
+
+     </Location>
+
+KNOWN BUGS
+    Headers printed by mod_perl scripts used as a HEADER, FOOTER or
+    in-the-middle uri need to use CGI.pm version 2.37 or higher or
+    headers will show up in the final document (browser window).
+    Suggested work-around (if you don't want to upgrade CGI.pm):
+    if($ENV{MOD_PERL} and Apache->request->is_main) { #send script
+    headers print "Content-type: text/html\n\n"; } else { #we're
+    part of a sub-request, don't send headers } =head1 AUTHOR
+
+    Doug MacEachern
+
