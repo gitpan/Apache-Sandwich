@@ -6,7 +6,7 @@ use 5.004;
 use mod_perl 1.02;
 use Apache::Include ();
 use Apache::Constants qw(OK DECLINED NOT_FOUND M_GET DOCUMENT_FOLLOWS);
-$Apache::Sandwich::VERSION = do {my @r=(q$Revision: 2.0 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r};
+$Apache::Sandwich::VERSION = do {my @r=(q$Revision: 2.1 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r};
 
 use vars qw($Debug);
 $Debug ||= 0;
@@ -21,6 +21,8 @@ sub handler {
 
     my $subr = $r->lookup_uri($r->uri);
     my $fileName = $subr->filename;
+
+    return DECLINED unless -T $fileName;
 
     open(F,$fileName) or return NOT_FOUND; # file not found
 

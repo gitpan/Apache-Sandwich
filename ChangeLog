@@ -1,3 +1,8 @@
+1998-09-04  Vivek Khera  <khera@kciLink.com>
+
+	* Sandwich.pm (handler): if file is not "plain text" as defined by 
+	Perl, DECLINE to handle it.  Idea/request from Gil Vidals.
+
 1998-08-31  Vivek Khera  <khera@kciLink.com>
 
 	* Change: make the sandwiched document delivered directly rather
