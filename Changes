@@ -1,5 +1,9 @@
 Revision history for Perl extension Apache::Sandwich.
 
+2.02  Tuesday May 11, 1999
+	- Allow sandwiched document to be delivered via a specified
+	handler rather than opening the file delivering it directly.
+
 2.01  Friday September 3, 1998
 	- Add test to make sure file is text (-T $fileName) otherwise
 	DECLINE to handle it.

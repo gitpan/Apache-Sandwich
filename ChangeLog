@@ -1,3 +1,10 @@
+1999-05-11  Vivek Khera  <khera@kciLink.com>
+
+	* Sandwich.pm (handler): instead of using a direct file send after
+ 	opening the file, call a specified handler to serve the document.
+  	If no handler is specified, use "default-handler".  This allows us
+ 	to use SSI documents inside the sandwich.
+
 1998-09-04  Vivek Khera  <khera@kciLink.com>
 
 	* Sandwich.pm (handler): if file is not "plain text" as defined by 

@@ -3,10 +3,10 @@ package Apache::Sandwich;
 
 use strict;
 use 5.004;
-use mod_perl 1.02;
+use mod_perl 1.19;
 use Apache::Include ();
 use Apache::Constants qw(OK DECLINED NOT_FOUND M_GET DOCUMENT_FOLLOWS);
-$Apache::Sandwich::VERSION = do {my @r=(q$Revision: 2.1 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r};
+$Apache::Sandwich::VERSION = do {my @r=(q$Revision: 2.2 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r};
 
 use vars qw($Debug);
 $Debug ||= 0;
@@ -14,17 +14,14 @@ $Debug ||= 0;
 sub handler {
     my($r) = @_;
 
-    local (*F);
-
-    # only works for GET method
-    return DECLINED unless ($r->method_number() == M_GET);
+    # only works for GET method on main request
+    return DECLINED unless ($r->method_number() == M_GET and $r->is_main());
 
     my $subr = $r->lookup_uri($r->uri);
     my $fileName = $subr->filename;
 
-    return DECLINED unless -T $fileName;
-
-    open(F,$fileName) or return NOT_FOUND; # file not found
+    return NOT_FOUND unless -f $fileName; # file not found
+    return DECLINED unless -T _; # not a text file
 
     #httpd.conf or .htaccess says:
     #PerlSetVar HEADER 
@@ -38,6 +35,8 @@ sub handler {
     $r->content_type("text/html");
     $r->send_http_header;
 
+    return OK if $r->header_only(); # HEAD request, so skip out early!
+
     #run subrequests to include the HEADER uri's
     foreach (@header) {
         my $status = Apache::Include->virtual($_, $r) if $_;
@@ -46,8 +45,13 @@ sub handler {
 	return $status unless $status == DOCUMENT_FOLLOWS; 
     }
 
-    $r->send_fd('F');		# send the actual file
-    close(F);
+    # run subrequest using the specified handler (or default handler)
+    # for the main document.
+    my $shandler = $r->dir_config('SandwichHandler') || 'default-handler';
+    $subr->handler($shandler);
+    $subr->run;
+    warn "sandwiched main file with $shandler\n" if $Debug;
+    return $subr->status unless $subr->status == DOCUMENT_FOLLOWS;
 
     #run subrequests to include the FOOTER uri's
     foreach (@footer) {
@@ -72,13 +76,20 @@ Apache::Sandwich - Layered document (sandwich) maker
 
  SetHandler  perl-script
  PerlHandler Apache::Sandwich
+ PerlSetVar SandwichHandler default-handler
 
 =head1 DESCRIPTION
 
 The B<Apache::Sandwich> module allows you to add a per-directory
 custom "header" and/or "footer" content to a given uri.  Only works
-with "GET" requests for static content HTML or text files.  Output of
-combined parts is forced to I<text/html>.
+with "GET" requests.  Output of combined parts is forced to
+I<text/html>.  The handler for the sandwiched document is specified by
+the SandwichHandler configuration variable.  If it is not set,
+"default-handler" is used.
+
+The basic concept is that the concatenation of the HEADER and FOOTER
+parts with the sandwiched file inbetween constitute a complete valid
+HTML document.
 
 Here's a configuration example:
 
@@ -103,7 +114,12 @@ With the above example, one must be careful not to put graphics within
 the same directory, otherwise they will be Sandwiched also.
 
 Here's another example which only Sandwiches the files we want (using
-Apache 1.3 syntax):
+Apache 1.3 syntax).  In this example, all *.brc files are sandwiched
+using the defined HEADER and FOOTER parts, with the file itself
+assumed to be a plain text file (or static HTML file).  All *.sbrc
+files are similarly sandwiched, except that the file itself is assumed
+to be an "shtml" file, i.e., it is given to the SSI handler for server
+side includes to be processed.
 
  # filter *.brc files through Sandwich maker, but define
  # HEADER/FOOTER per section below
@@ -111,6 +127,12 @@ Apache 1.3 syntax):
  <FilesMatch "\.brc$">
   SetHandler  perl-script
   PerlHandler Apache::Sandwich
+ </FilesMatch>
+ 
+ <FilesMatch "\.sbrc$">
+  SetHandler  perl-script
+  PerlHandler Apache::Sandwich
+  PerlSetVar SandwichHandler server-parsed
  </FilesMatch>
  
  # now specify the header and footer for each major section
@@ -129,7 +151,7 @@ Note that in this example, the file F<ADS.shtml> is included from the
 same directory as the requested file.
 
 The files referenced in the HEADER and FOOTER variables are fetched
-using the "GET" method and may produce dynamically generated text.
+using the "GET" method and may be of any type file the server can process.
 
 =head1 KNOWN BUGS
 
@@ -147,10 +169,6 @@ work-around (if you don't want to upgrade CGI.pm):
 
 Setting $Apache::Sandwich::Debug to 1 will log debugging information
 into the Apache ErrorLog.
-
-The sandwiched file must be a plain static HTML or text file.  If
-someone knows how to call an alternate handler for the file, please
-contribute the patches!
 
 =head1 AUTHOR
 
