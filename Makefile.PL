@@ -5,7 +5,7 @@ WriteMakefile(
 	      'NAME'	=> 'Apache::Sandwich',
 	      'VERSION_FROM' => 'Sandwich.pm', # finds $VERSION
 	      dist => {
-		       PREOP => 'co -l README && pod2text Sandwich.pm > README && ci -u README',
+#		       PREOP => 'co -l README && pod2text Sandwich.pm > README && ci -u README',
 		       SUFFIX => 'gz',
 		       COMPRESS => 'gzip -9',
 		      }

@@ -1,0 +1,14 @@
+1998-08-31  Vivek Khera  <khera@kciLink.com>
+
+	* Change: make the sandwiched document delivered directly rather
+	than via a virtual include.  This saves the dispatch time and also 
+	allows us to verify the file exists before we do anything further.
+
+	* Rewrite: since it only works for GET method objects, ensure we
+	are using GET.  Document as such in the POD section of the file.
+
+1998-08-20  Vivek Khera  <khera@kciLink.com>
+
+	* Cleanup: Cleaned up code to reduce warnings to error log.
+
+

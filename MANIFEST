@@ -4,3 +4,4 @@ Makefile.PL
 Sandwich.pm
 test.pl
 README
+ChangeLog
