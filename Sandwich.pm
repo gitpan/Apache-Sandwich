@@ -4,12 +4,17 @@ package Apache::Sandwich;
 use strict;
 use 5.004;
 use mod_perl 1.19;
+use Apache ();
 use Apache::Include ();
 use Apache::Constants qw(OK DECLINED NOT_FOUND M_GET DOCUMENT_FOLLOWS);
-$Apache::Sandwich::VERSION = do {my @r=(q$Revision: 2.2 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r};
 
-use vars qw($Debug);
+use vars qw($Debug $VERSION);
 $Debug ||= 0;
+
+BEGIN {
+  #must be one line for MakeMaker to work!
+  $VERSION = do { my @r=(q$Revision: 2.4 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+}
 
 sub handler {
     my($r) = @_;
@@ -49,6 +54,7 @@ sub handler {
     # for the main document.
     my $shandler = $r->dir_config('SandwichHandler') || 'default-handler';
     $subr->handler($shandler);
+    $subr->args($r->args);	# pass along query string if there is one.
     $subr->run;
     warn "sandwiched main file with $shandler\n" if $Debug;
     return $subr->status unless $subr->status == DOCUMENT_FOLLOWS;
@@ -62,6 +68,28 @@ sub handler {
     }
 
     return OK;
+}
+
+# insert header/footer parts for mod_perl programs
+# MUST RUN UNDER mod_perl ENVIRONMENT.
+#
+# $which is one of "HEADER" or "FOOTER".
+# Use PerlSetVar in httpd.conf to set these values.
+sub insert_parts ($) {
+  my ($which) = @_;
+
+  my $r = Apache->request;
+
+  my(@parts) = split /\s+/, $r->dir_config($which);
+  for my $uri (@parts) {
+    warn("inserting $uri " . $r->method() . "\n") if $Debug;
+    my $status = Apache::Include->virtual($uri, $r) if $uri;
+
+    #bail if we fail!
+    return $status unless $status == DOCUMENT_FOLLOWS; 
+  }
+
+  return 0;
 }
 
 1;
@@ -102,12 +130,12 @@ Here's a configuration example:
   PerlHandler Apache::Sandwich
 
   #we send this file first
-  PerlSetVar HEADER /my_header.html
+  PerlSetVar HEADER "/my_header.html"
 
   #requested uri (e.g. /foo/index.html) is sent in the middle
 
   #we send output of this mod_perl script last  
-  PerlSetVar FOOTER /perl/footer.pl
+  PerlSetVar FOOTER "/perl/footer.pl"
  </Location>
 
 With the above example, one must be careful not to put graphics within
@@ -138,13 +166,13 @@ side includes to be processed.
  # now specify the header and footer for each major section
  #
  <Location /misc>
-   PerlSetVar HEADER /misc/HEADER.shtml ADS.shtml
-   PerlSetVar FOOTER /misc/FOOTER.html
+   PerlSetVar HEADER "/misc/HEADER.shtml ADS.shtml"
+   PerlSetVar FOOTER "/misc/FOOTER.html"
  </Location>
  
  <Location /getting_started>
-   PerlSetVar HEADER /getting_started/HEADER.shtml ADS.shtml
-   PerlSetVar FOOTER /misc/FOOTER.html
+   PerlSetVar HEADER "/getting_started/HEADER.shtml ADS.shtml"
+   PerlSetVar FOOTER "/misc/FOOTER.html"
  </Location>
 
 Note that in this example, the file F<ADS.shtml> is included from the
@@ -152,6 +180,27 @@ same directory as the requested file.
 
 The files referenced in the HEADER and FOOTER variables are fetched
 using the "GET" method and may be of any type file the server can process.
+
+=head2 Sandwiching mod_perl Programs
+
+The helper function insert_parts() can be used to make your CGI programs look like the rest of your pages.  A simple script would be:
+
+ #! /usr/local/bin/perl
+ use strict;
+
+ use CGI;
+ use Apache::Sandwich;
+
+ use vars qw($query);
+
+ $query = new CGI or die "Something failed";
+
+ print $query->header();
+ Apache::Sandwich::insert_parts('HEADER');
+
+ print $query->p("Hello, world!");
+
+ Apache::Sandwich::insert_parts('FOOTER');
 
 =head1 KNOWN BUGS
 

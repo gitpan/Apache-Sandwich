@@ -1,5 +1,15 @@
 Revision history for Perl extension Apache::Sandwich.
 
+2.04  Thursday March 16, 2000
+	- Call $r->args() to set args for sub request so QUERY STRING
+	is available.
+
+2.03  Thursday March 16, 2000
+	- Fixed docs to put "" around HEADER/FOOTER defs as required
+	by Apache.
+	- Added insert_document_parts() function.
+	NEVER RELEASED
+
 2.02  Tuesday May 11, 1999
 	- Allow sandwiched document to be delivered via a specified
 	handler rather than opening the file delivering it directly.

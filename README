@@ -28,12 +28,12 @@ DESCRIPTION
       PerlHandler Apache::Sandwich
 
       #we send this file first
-      PerlSetVar HEADER /my_header.html
+      PerlSetVar HEADER "/my_header.html"
 
       #requested uri (e.g. /foo/index.html) is sent in the middle
 
       #we send output of this mod_perl script last  
-      PerlSetVar FOOTER /perl/footer.pl
+      PerlSetVar FOOTER "/perl/footer.pl"
      </Location>
 
     With the above example, one must be careful not to put graphics within
@@ -64,13 +64,13 @@ DESCRIPTION
      # now specify the header and footer for each major section
      #
      <Location /misc>
-       PerlSetVar HEADER /misc/HEADER.shtml ADS.shtml
-       PerlSetVar FOOTER /misc/FOOTER.html
+       PerlSetVar HEADER "/misc/HEADER.shtml ADS.shtml"
+       PerlSetVar FOOTER "/misc/FOOTER.html"
      </Location>
      
      <Location /getting_started>
-       PerlSetVar HEADER /getting_started/HEADER.shtml ADS.shtml
-       PerlSetVar FOOTER /misc/FOOTER.html
+       PerlSetVar HEADER "/getting_started/HEADER.shtml ADS.shtml"
+       PerlSetVar FOOTER "/misc/FOOTER.html"
      </Location>
 
     Note that in this example, the file ADS.shtml is included from the same
@@ -79,6 +79,28 @@ DESCRIPTION
     The files referenced in the HEADER and FOOTER variables are fetched
     using the "GET" method and may be of any type file the server can
     process.
+
+  Sandwiching mod_perl Programs
+
+    The helper function insert_parts() can be used to make your CGI programs
+    look like the rest of your pages. A simple script would be:
+
+     #! /usr/local/bin/perl
+     use strict;
+
+     use CGI;
+     use Apache::Sandwich;
+
+     use vars qw($query);
+
+     $query = new CGI or die "Something failed";
+
+     print $query->header();
+     Apache::Sandwich::insert_parts('HEADER');
+
+     print $query->p("Hello, world!");
+
+     Apache::Sandwich::insert_parts('FOOTER');
 
 KNOWN BUGS
     Headers printed by mod_perl scripts used as a HEADER, FOOTER or in-the-
